@@ -1,13 +1,13 @@
 {
-  "name": "@espcom/any",
+  "name": "@espcom/esbuild-plugin-inject-preload",
   "author": "espcom",
   "license": "MIT",
   "version": "0.0.1",
-  "description": "",
+  "description": "Esbuild plugin for injecting preload links into HTML templates",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/esbuild-plugins-community/any"
+    "url": "git+https://github.com/esbuild-plugins-community/esbuild-plugin-inject-preload.git"
   },
   "scripts": {
     "prepare": "husky",
