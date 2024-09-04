@@ -1,3 +1,6 @@
 export type TypeOptions = {
-  param?: string;
+  ext: string;
+  linkType: string;
+  templatePath: string;
+  replaceString: string;
 };
