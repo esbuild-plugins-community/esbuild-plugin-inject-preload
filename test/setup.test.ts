@@ -12,7 +12,7 @@ const nonObjects = [0, true, null, '', [], () => false];
 const nonTrue = [0, false, null, '', [], () => false, {}];
 const nonFullString = [0, false, null, '', [], () => false, {}, true];
 
-void describe('Validate result', async () => {
+void describe('Validate setup', async () => {
   const config: BuildOptions = {
     entryPoints: [path.resolve('test/res/entry.ts')],
     bundle: true,
@@ -26,12 +26,13 @@ void describe('Validate result', async () => {
     packages: 'external',
     resolveExtensions: ['.ts'],
     plugins: [
-      pluginInjectPreload({
-        ext: '1',
-        linkType: '1',
-        templatePath: '1',
-        replaceString: '1',
-      }),
+      pluginInjectPreload([
+        {
+          templatePath: '1',
+          replace: '<!-- ENTRY_SCRIPT --><!-- /ENTRY_SCRIPT -->',
+          as: () => undefined,
+        },
+      ]),
     ],
   };
 

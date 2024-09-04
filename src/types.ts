@@ -1,6 +1,5 @@
-export type TypeOptions = {
-  ext: string;
-  linkType: string;
+export type TypeOptions = Array<{
   templatePath: string;
-  replaceString: string;
-};
+  replace: string;
+  as: (filePath: string) => string | void;
+}>;
