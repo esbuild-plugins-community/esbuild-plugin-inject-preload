@@ -4,65 +4,49 @@ import * as assert from 'node:assert/strict';
 import { pluginInjectPreload } from '../src/index.js';
 import { TypeOptions } from '../src/types.js';
 
+const nonArrays = [0, true, null, '', {}, () => false];
 const nonObjects = [0, true, null, '', [], () => false];
 const nonStrings = [0, true, null, [], () => false, {}];
+const nonFunctions = [0, true, null, [], '', {}];
 
-const getOptions = (options: Partial<TypeOptions>) => {
-  return {
-    ext: typeof options.ext !== 'undefined' ? options.ext : '1',
-    linkType: typeof options.linkType !== 'undefined' ? options.linkType : '1',
-    templatePath: typeof options.templatePath !== 'undefined' ? options.templatePath : '1',
-    replaceString: typeof options.replaceString !== 'undefined' ? options.replaceString : '1',
-  };
+const getOptions = (options: Partial<TypeOptions[number]>) => {
+  return [
+    {
+      templatePath: typeof options.templatePath !== 'undefined' ? options.templatePath : '1',
+      replace:
+        typeof options.replace !== 'undefined'
+          ? options.replace
+          : '<!-- ENTRY_SCRIPT --><!-- /ENTRY_SCRIPT -->',
+      as: typeof options.as !== 'undefined' ? options.as : () => undefined,
+    },
+  ] as TypeOptions;
 };
 
 void describe('Validate options', async () => {
-  await it('options should be an object', () => {
+  await it('options should be an array', () => {
     // @ts-ignore
     assert.throws(() => pluginInjectPreload(), {
-      message: '@espcom/esbuild-plugin-inject-preload: Options must be a plain object',
+      message: '@espcom/esbuild-plugin-inject-preload: Options must be an array',
     });
 
-    nonObjects.forEach((value: any) => {
+    nonArrays.forEach((value: any) => {
       assert.throws(() => pluginInjectPreload(value), {
-        message: '@espcom/esbuild-plugin-inject-preload: Options must be a plain object',
+        message: '@espcom/esbuild-plugin-inject-preload: Options must be an array',
       });
     });
   });
 
-  await it('options.ext should be a full string', () => {
-    assert.doesNotThrow(() => pluginInjectPreload(getOptions({})));
-
-    assert.throws(() => pluginInjectPreload(getOptions({ ext: '' })), {
-      message:
-        '@espcom/esbuild-plugin-inject-preload: The "ext" parameter must be a non-empty string',
-    });
-
-    nonStrings.forEach((value: any) => {
-      assert.throws(() => pluginInjectPreload(getOptions({ ext: value })), {
-        message: '@espcom/esbuild-plugin-inject-preload: The "ext" parameter must be a string',
+  await it('option should be an object', () => {
+    nonObjects.forEach((value: any) => {
+      assert.throws(() => pluginInjectPreload([value]), {
+        message: '@espcom/esbuild-plugin-inject-preload: Option item must be a plain object',
       });
     });
-  });
 
-  await it('options.linkType should be a full string', () => {
     assert.doesNotThrow(() => pluginInjectPreload(getOptions({})));
-
-    assert.throws(() => pluginInjectPreload(getOptions({ linkType: '' })), {
-      message:
-        '@espcom/esbuild-plugin-inject-preload: The "linkType" parameter must be a non-empty string',
-    });
-
-    nonStrings.forEach((value: any) => {
-      assert.throws(() => pluginInjectPreload(getOptions({ linkType: value })), {
-        message: '@espcom/esbuild-plugin-inject-preload: The "linkType" parameter must be a string',
-      });
-    });
   });
 
   await it('options.templatePath should be a full string', () => {
-    assert.doesNotThrow(() => pluginInjectPreload(getOptions({})));
-
     assert.throws(() => pluginInjectPreload(getOptions({ templatePath: '' })), {
       message:
         '@espcom/esbuild-plugin-inject-preload: The "templatePath" parameter must be a non-empty string',
@@ -76,18 +60,27 @@ void describe('Validate options', async () => {
     });
   });
 
-  await it('options.replaceString should be a full string', () => {
-    assert.doesNotThrow(() => pluginInjectPreload(getOptions({})));
-
-    assert.throws(() => pluginInjectPreload(getOptions({ replaceString: '' })), {
+  await it('options.replace should be a closed html comment', () => {
+    assert.throws(() => pluginInjectPreload(getOptions({ replace: '' })), {
       message:
-        '@espcom/esbuild-plugin-inject-preload: The "replaceString" parameter must be a non-empty string',
+        '@espcom/esbuild-plugin-inject-preload: The "replace" parameter must be a non-empty string',
+    });
+    assert.throws(() => pluginInjectPreload(getOptions({ replace: '1' })), {
+      message:
+        '@espcom/esbuild-plugin-inject-preload: The "replace" parameter must be a closed html comment',
     });
 
     nonStrings.forEach((value: any) => {
-      assert.throws(() => pluginInjectPreload(getOptions({ replaceString: value })), {
-        message:
-          '@espcom/esbuild-plugin-inject-preload: The "replaceString" parameter must be a string',
+      assert.throws(() => pluginInjectPreload(getOptions({ replace: value })), {
+        message: '@espcom/esbuild-plugin-inject-preload: The "replace" parameter must be a string',
+      });
+    });
+  });
+
+  await it('options.as should be a function', () => {
+    nonFunctions.forEach((value: any) => {
+      assert.throws(() => pluginInjectPreload(getOptions({ as: value })), {
+        message: '@espcom/esbuild-plugin-inject-preload: The "as" parameter must be a function',
       });
     });
   });

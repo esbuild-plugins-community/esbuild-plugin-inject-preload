@@ -1,4 +1,5 @@
 import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 import { Plugin } from 'esbuild';
 
@@ -7,6 +8,13 @@ import { validateOptions } from './validators/validateOptions.js';
 import { pluginName } from './constants.js';
 import { validateSetup } from './validators/validateSetup.js';
 import { validateResult } from './validators/validateResult.js';
+
+function joinWithPublicPath(publicPath: string, relPath: string) {
+  const relPathNormalized = path.normalize(relPath);
+  const slash = publicPath.endsWith('/') ? '' : '/';
+
+  return `${publicPath}${slash}${relPathNormalized}`;
+}
 
 export const pluginInjectPreload = (options: TypeOptions): Plugin => {
   validateOptions(options);
@@ -19,23 +27,32 @@ export const pluginInjectPreload = (options: TypeOptions): Plugin => {
       build.onEnd((resultRaw) => {
         const result = validateResult(resultRaw);
 
-        let template = fs.readFileSync(options.templatePath, 'utf-8');
-        const outputs = Object.keys(result.metafile.outputs);
-        const outDir = build.initialOptions.outdir.split('/').pop();
+        options.forEach((option) => {
+          let template = fs.readFileSync(option.templatePath, 'utf-8');
+          let replaceString = '';
 
-        template = template.replace(
-          options.replaceString,
-          outputs
-            .filter((str) => str.endsWith(options.ext))
-            .map((str) => str.replace(new RegExp(`${outDir}/?`), ''))
-            .map(
-              (str) =>
-                `<link as="${options.linkType}" crossorigin="anonymous" href="/${str}" rel="preload">`
-            )
-            .join('\n')
-        );
+          Object.keys(result.metafile.outputs).forEach((filePath) => {
+            let targetPath = path.relative(build.initialOptions.outdir, filePath);
 
-        fs.writeFileSync(options.templatePath, template, 'utf-8');
+            if (build.initialOptions.publicPath) {
+              targetPath = joinWithPublicPath(build.initialOptions.publicPath, targetPath);
+            }
+
+            replaceString += option.as(targetPath) || '';
+          });
+
+          const parts = option.replace.split('><');
+
+          template = template.replace(
+            new RegExp(`(${parts[0]}>)(.+)?(<${parts[1]})`),
+            // eslint-disable-next-line max-params
+            (m, left, content, right) => {
+              return left + replaceString + right;
+            }
+          );
+
+          fs.writeFileSync(option.templatePath, template, 'utf-8');
+        });
 
         return Promise.resolve();
       });
