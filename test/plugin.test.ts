@@ -20,6 +20,10 @@ void describe('Plugin test', async () => {
   const templatePathTemp = path.resolve('test/tmp/template.html');
   const oldContent = fs.readFileSync(templatePathRes, 'utf8');
 
+  if (!fs.existsSync(path.resolve('test/tmp'))) {
+    fs.mkdirSync(path.resolve('test/tmp'));
+  }
+
   const getResult = (scripts: Array<string>, woff: Array<string>, ttf: Array<string>) => {
     return oldContent
       .replace(
