@@ -2,7 +2,7 @@
   "name": "@espcom/esbuild-plugin-inject-preload",
   "author": "espcom",
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Esbuild plugin for injecting preload links into HTML templates",
   "type": "module",
   "repository": {
